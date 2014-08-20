@@ -25,6 +25,44 @@ def checkResponses(comment):
 r = praw.Reddit(user_agent='wdill_bot 0.1')
 r.login(os.environ['ruser'], os.environ['rpass'])
 
+def handle(target, comment, term):
+	first = getFirst(target)
+	if checkResponses(comment):
+		if first:
+			response =  first['unescapedUrl']
+			try:
+				comment.reply('['+term+' might look something like this.](' + response + ')')
+				print 'Replied to ' + comment.id
+				return True
+			except praw.errors.RateLimitExceeded:
+				print 'Rate Limit Exceeded, can\'t reply'
+		else:
+			print 'No results for ' + target
+	else:
+		print 'Already replied to ' + comment.id
+	hit.add(comment.id)
+	return False
+
+def handleIt(comment):
+	if comment.id not in hit and reg_it.match(comment.body.lower()):
+		if comment.is_root:
+			return handle(comment.submission.title, comment, 'It')
+		else:
+			return handle(r.get_info(thing_id=comment.parent_id).body, comment, 'It')
+	return False
+
+def handleThey(comment):
+	if comment.id not in hit and reg_they.match(comment.body.lower()):
+		if comment.is_root:
+			return handle(comment.submission.author.name, comment, 'They')
+		else:
+			return handle(r.get_info(thing_id=comment.parent_id).author.name, comment, 'They')
+	return False
+
+def handleI(comment):
+	if comment.id not in hit and reg_i.match(comment.body.lower()):
+		return handle(comment.author.name, comment, "You")
+	return False
 
 hit = set()
 s = r.get_subreddit('test')
@@ -38,78 +76,10 @@ reg_i = re.compile(rex_i)
 while True:
 	comments = s.get_comments()
 	for comment in comments:
-		if comment.id not in hit and reg_it.match(comment.body.lower()):
-			if comment.is_root:
-				#get name of submission
-				target = comment.submission.title
-				first = getFirst(target)
-				if checkResponses(comment):
-					if first:
-						response =  first['unescapedUrl']
-						comment.reply('[It might look something like this.](' + response + ')')
-						print 'Replied to ' + comment.id
-					else:
-						print 'No results for ' + target
-				else:
-					print 'Already replied to ' + comment.id
-				hit.add(comment.id)
-			else:
-				#get content of parent
-				target = r.get_info(thing_id=comment.parent_id).body
-				first = getFirst(target)
-				if checkResponses(comment):
-					if first:
-						response =  first['unescapedUrl']
-						comment.reply('[It might look something like this.](' + response + ')')
-						print 'Replied to ' + comment.id
-					else:
-						print 'No results for ' + target
-				else:
-					print 'Already replied to ' + comment.id
-				hit.add(comment.id)
-		elif comment.id not in hit and reg_they.match(comment.body.lower()):
-			if comment.is_root:
-				#get poster of submission
-				target = comment.submission.author.name
-				first = getFirst(target)
-				if checkResponses(comment):
-					if first:
-						response =  first['unescapedUrl']
-						comment.reply('[They might look something like this.](' + response + ')')
-						print 'Replied to ' + comment.id
-					else:
-						print 'No results for ' + target
-				else:
-					print 'Already replied to ' + comment.id
-				hit.add(comment.id)
-			else:
-				#get poster of parent
-				target = r.get_info(thing_id=comment.parent_id).author.name
-				first = getFirst(target)
-
-				if checkResponses(comment):
-					if first:
-						response =  first['unescapedUrl']
-						comment.reply('[They might look something like this.](' + response + ')')
-						print 'Replied to ' + comment.id
-					else:
-						print 'No results for ' + target
-				else:
-					print 'Already replied to ' + comment.id
-				hit.add(comment.id)
-		elif comment.id not in hit and reg_i.match(comment.body.lower()):
-			#get poster of parent
-			target = comment.author.name
-			first = getFirst(target)
-
-			if checkResponses(comment):
-				if first:
-					response =  first['unescapedUrl']
-					comment.reply('[You might look something like this.](' + response + ')')
-					print 'Replied to ' + comment.id
-				else:
-					print 'No results for ' + target
-			else:
-				print 'Already replied to ' + comment.id
-			hit.add(comment.id)
+		if handleIt(comment):
+			print 'Handled "it" item'
+		elif handleThey(comment):
+			print 'Handled "them" item'
+		elif handleI(comment):
+			print 'Handled "I" item'
 	time.sleep(5)
