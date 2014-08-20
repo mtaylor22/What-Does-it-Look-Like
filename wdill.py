@@ -26,8 +26,8 @@ r = praw.Reddit(user_agent='wdill_bot 0.1')
 r.login(os.environ['ruser'], os.environ['rpass'])
 
 def handle(target, comment, term):
-	first = getFirst(target)
 	if checkResponses(comment):
+		first = getFirst(target)
 		if first:
 			response =  first['unescapedUrl']
 			try:
@@ -65,8 +65,6 @@ def handleI(comment):
 	return False
 
 hit = set()
-s = r.get_subreddit('test')
-comments = s.get_comments()
 rex_it = 'what(s|\'s)? ?(does|did|will|would)? ?(it|that|this) look like\??'
 rex_they = 'what(s|\'s)? ?(does|did|will|would)? ?(they|he|she) look like\??'
 rex_i = 'what(s|\'s)? ?(does|did|will|would)? ?(i) look like\??'
@@ -74,7 +72,7 @@ reg_it = re.compile(rex_it)
 reg_they = re.compile(rex_they)
 reg_i = re.compile(rex_i)
 while True:
-	comments = s.get_comments()
+	comments = r.get_comments('test')
 	for comment in comments:
 		if handleIt(comment):
 			print 'Handled "it" item'
@@ -82,4 +80,4 @@ while True:
 			print 'Handled "them" item'
 		elif handleI(comment):
 			print 'Handled "I" item'
-	time.sleep(5)
+	time.sleep(30)
