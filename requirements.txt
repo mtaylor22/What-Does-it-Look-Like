@@ -3,7 +3,7 @@ Django==1.5.1
 Flask==0.9
 Flask-KVSession==0.3.2
 Jinja2==2.6
-MySQL-Connector-Python==1.1.5
+MySQL-Connector-Python==1.1.4
 PIL==1.1.7
 Pillow==2.0.0
 PyYAML==3.10
