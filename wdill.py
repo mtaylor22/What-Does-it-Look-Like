@@ -5,7 +5,6 @@ import simplejson
 import re
 import time
 import os
-include('pass.py')
 
 def getFirst(query):
 	url = ('https://ajax.googleapis.com/ajax/services/search/images?v=1.0&'+urllib.urlencode({'q': query}))
